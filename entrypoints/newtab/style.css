@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@import "@fontsource/instrument-sans/400.css";
+@import "@fontsource/instrument-sans/500.css";
+@import "@fontsource/instrument-sans/600.css";
+
+:root {
+  --accent: #152671;
+  --accent-mid: #1b2c78;
+  --accent-light: #5669bd;
+}
+
+body {
+  background: linear-gradient(
+    180deg,
+    var(--accent) 10%,
+    var(--accent-mid) 30%,
+    var(--accent-light) 100%
+  );
+  font-family: "Instrument Sans", sans-serif;
+  color: white;
+  height: 100vh;
+}
+
+.search-input {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border-radius: 0.75rem;
+  background: #fff;
+  color: #111827;
+  font-size: 1.125rem;
+  font-weight: 500;
+  box-shadow: 0 4px 20px rgb(0 0 0 / 0.1);
+  transition:
+    box-shadow 0.12s,
+    transform 0.35s;
+}
+
+.search-input:focus {
+  outline: none;
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 5px rgb(175 190 255 / 0.2),
+    0 14px 40px rgb(0 0 0 / 0.35);
+}
