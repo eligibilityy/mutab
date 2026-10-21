@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
-export function Clock() {
+export function Clock({ compact }: { compact: boolean }) {
   const [time, setTime] = useState(() => new Date());
 
   useEffect(() => {
@@ -23,20 +23,22 @@ export function Clock() {
   const hours = String(time.getHours());
   const minutes = String(time.getMinutes()).padStart(2, "0");
 
+  const date = time.toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+
   return (
-    <div className="flex flex-col text-6xl">
-      <div>
-        {time.toLocaleDateString(undefined, {
-          weekday: "long",
-          month: "long",
-          day: "numeric",
-        })}
-      </div>
-      <div className="flex">
+    <div
+      className={`flex items-center text-center ${compact ? "flex-col" : "flex-col-reverse"}`}
+    >
+      <p className="date">{date}</p>
+      <h1 className={`clock ${compact ? "clock-compact" : ""}`}>
         {hours}
-        <span className="opacity-40">:</span>
+        <span className="colon">:</span>
         {minutes}
-      </div>
+      </h1>
     </div>
   );
 }

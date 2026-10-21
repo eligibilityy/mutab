@@ -1,13 +1,20 @@
 @import "tailwindcss";
 
-@import "@fontsource/instrument-sans/400.css";
-@import "@fontsource/instrument-sans/500.css";
-@import "@fontsource/instrument-sans/600.css";
+@import "@fontsource/inter/300.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
 
 :root {
   --accent: #152671;
   --accent-mid: #1b2c78;
   --accent-light: #5669bd;
+}
+
+html,
+body,
+#root {
+  height: 100%;
 }
 
 body {
@@ -17,18 +24,86 @@ body {
     var(--accent-mid) 30%,
     var(--accent-light) 100%
   );
-  font-family: "Instrument Sans", sans-serif;
+  font-family: "Inter", sans-serif;
   color: white;
-  height: 100vh;
+  overflow: hidden;
+}
+
+.spacer-outer,
+.spacer-center {
+  min-height: 0;
+  transition: flex-grow 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.is-idle .spacer-outer {
+  flex-grow: 1;
+}
+.is-idle .spacer-center {
+  flex-grow: 0;
+  height: 2.5rem;
+}
+
+.is-playing .spacer-outer {
+  flex-grow: 0.18;
+}
+.is-playing .spacer-center {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cover-placeholder {
+  width: min(38vh, 22rem);
+  aspect-ratio: 1;
+  border-radius: 1rem;
+  background: rgb(255 255 255 / 0.1);
+  box-shadow: 0 30px 80px rgb(0 0 0 / 0.45);
+}
+
+/* ─── Clock (from your Helium page) ─── */
+.clock {
+  font-size: clamp(4.5rem, 12vw, 8rem);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.07em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 4px 10px rgb(0 0 0 / 0.1);
+  transition: font-size 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.clock-compact {
+  font-size: clamp(3.5rem, 8vw, 5.5rem);
+}
+
+.clock .colon {
+  font-weight: 300;
+  opacity: 0.4;
+}
+
+.date {
+  margin-top: 0.5rem;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  font-weight: 500;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  padding: 0 1.5rem;
 }
 
 .search-input {
   width: 100%;
-  padding: 1rem 1.5rem 1rem 3.5rem;
+  padding: 0.8rem 1.25rem 0.8rem 3rem;
   border-radius: 0.75rem;
   background: #fff;
   color: #111827;
-  font-size: 1.125rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
   font-weight: 500;
   box-shadow: 0 4px 20px rgb(0 0 0 / 0.1);
   transition: box-shadow 0.12s;
@@ -42,6 +117,13 @@ body {
   transform: translateY(-2px);
 }
 
+.search-input::placeholder {
+  color: rgb(21 38 113 / 0.5);
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
 .search-input:focus {
   outline: none;
   box-shadow:
@@ -51,9 +133,9 @@ body {
 
 .search-icon {
   position: absolute;
-  left: 1.25rem;
-  width: 1.25rem;
-  height: 1.25rem;
+  left: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
   pointer-events: none;
   z-index: 1;
 }
@@ -72,6 +154,12 @@ body {
   background: rgb(86 105 189 / 0.25);
   backdrop-filter: blur(32px);
   box-shadow: 0 10px 40px rgb(0 0 0 / 0.25);
+}
+
+/* In playing mode the search bar is at the bottom: open the list upward */
+.is-playing .suggestions {
+  top: auto;
+  bottom: calc(100% + 8px);
 }
 
 .suggestion {
