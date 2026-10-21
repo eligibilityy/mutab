@@ -1,4 +1,8 @@
-import { useState, type SubmitEvent } from "react";
+import {
+  useState,
+  type SubmitEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 import { faviconUrl, parseBang, BANGS, type Bang } from "./bangs";
 import { fetchSuggestions } from "./suggest";
 
@@ -37,8 +41,6 @@ function parseUrl(text: string): URL | null {
   }
 }
 
-// What to fetch web suggestions for: the part after a known bang ("!yt lofi" → "lofi"),
-// or the whole text. Empty means don't suggest ("!y", "!yt", unknown bangs).
 function suggestionQuery(text: string) {
   const bangMatch = parseBang(text);
   if (bangMatch) return bangMatch.query;
@@ -49,6 +51,25 @@ export function SearchBar() {
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
   const [webSuggestions, setWebSuggestions] = useState<string[]>([]);
+  const [selected, setSelected] = useState(-1);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      const typing = document.activeElement === inputRef.current;
+      if (
+        (event.ctrlKey && event.key === "k") ||
+        (event.key === "/" && !typing)
+      ) {
+        event.preventDefault();
+        inputRef.current?.focus();
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   useEffect(() => {
     const searchText = suggestionQuery(query.trim());
@@ -91,6 +112,17 @@ export function SearchBar() {
 
   const showSuggestions = focused && suggestions.length > 0;
 
+  const highlighted = showSuggestions ? suggestions[selected] : undefined;
+
+  function valueOf(suggestion: Suggestion) {
+    if (suggestion.kind === "bang") return suggestion.bang.trigger + " ";
+    return activeBang
+      ? `${activeBang.trigger} ${suggestion.text}`
+      : suggestion.text;
+  }
+
+  const inputValue = highlighted ? valueOf(highlighted) : query;
+
   async function navigate(text: string) {
     const bangMatch = parseBang(text);
     if (bangMatch) {
@@ -127,25 +159,49 @@ export function SearchBar() {
     }
   }
 
-  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+  function handleKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Escape") {
+      setQuery("");
+      setSelected(-1);
+      return;
+    }
+    if (!showSuggestions) return;
+
+    const forward =
+      event.key === "ArrowDown" || (event.key === "Tab" && !event.shiftKey);
+    const backward =
+      event.key === "ArrowUp" || (event.key === "Tab" && event.shiftKey);
+
+    if (!forward && !backward) return;
+    const last = suggestions.length - 1;
     event.preventDefault();
 
-    const text = query.trim();
-
-    if (text) navigate(text);
+    setSelected((current) =>
+      forward
+        ? current >= last
+          ? 0
+          : current + 1
+        : current <= 0
+          ? last
+          : current - 1,
+    );
   }
 
   function pickSuggestion(suggestion: Suggestion) {
-    if (suggestion.kind === "bang") {
-      setQuery(suggestion.bang.trigger + " ");
-    } else {
-      // Keep the active bang so "!yt lofi" → "lofi girl" searches YouTube, not Google.
-      const target = activeBang
-        ? `${activeBang.trigger} ${suggestion.text}`
-        : suggestion.text;
-      setQuery(target);
-      navigate(target);
+    const value = valueOf(suggestion);
+    setQuery(value);
+    setSelected(-1);
+    if (suggestion.kind === "web") navigate(value);
+  }
+
+  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (highlighted) {
+      pickSuggestion(highlighted);
+      return;
     }
+    const text = query.trim();
+    if (text) navigate(text);
   }
 
   return (
@@ -177,9 +233,20 @@ export function SearchBar() {
           </svg>
         )}
         <input
+          ref={inputRef}
+          value={inputValue}
+          onChange={(event) => {
+            setQuery(event.target.value);
+            setSelected(-1);
+          }}
+          onKeyDown={handleKeyDown}
+          role="combobox"
+          aria-expanded={showSuggestions}
+          aria-controls="suggestions"
+          aria-activedescendant={
+            highlighted ? `suggestion-${selected}` : undefined
+          }
           type="text"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
           placeholder="Search or type a URL"
           aria-label="Search or enter a URL"
           autoFocus
@@ -190,16 +257,18 @@ export function SearchBar() {
         />
       </div>
       {showSuggestions && (
-        <ul className="suggestions" role="listbox">
-          {suggestions.map((suggestion) => (
+        <ul id="suggestions" className="suggestions" role="listbox">
+          {suggestions.map((suggestion, index) => (
             <li
-              className="suggestion"
+              className={`suggestion ${index === selected ? "selected" : ""}`}
+              id={`suggestion-${index}`}
               key={
                 suggestion.kind === "bang"
                   ? suggestion.bang.trigger
                   : suggestion.text
               }
               role="option"
+              aria-selected={index === selected}
               onMouseDown={(event) => {
                 event.preventDefault();
                 pickSuggestion(suggestion);
