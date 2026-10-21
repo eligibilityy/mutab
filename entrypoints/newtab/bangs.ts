@@ -33,3 +33,10 @@ export function parseBang(text: string) {
   const bang = BANGS.find((b) => b.trigger === trigger.toLowerCase());
   return bang ? { bang, query } : null;
 }
+
+export function faviconUrl(pageUrl: string, size = 32) {
+  const url = new URL(`chrome-extension://${browser.runtime.id}/_favicon/`);
+  url.searchParams.set("pageUrl", pageUrl);
+  url.searchParams.set("size", String(size));
+  return url.href;
+}

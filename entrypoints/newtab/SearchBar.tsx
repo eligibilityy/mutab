@@ -1,5 +1,5 @@
 import { useState, type SubmitEvent } from "react";
-import { parseBang } from "./bangs";
+import { faviconUrl, parseBang } from "./bangs";
 
 function parseUrl(text: string): URL | null {
   const hasProtocol = /^[a-z][a-z\d+.-]*:\/\//i.test(text);
@@ -36,6 +36,7 @@ function parseUrl(text: string): URL | null {
 
 export function SearchBar() {
   const [query, setQuery] = useState("");
+  const activeBang = parseBang(query)?.bang;
 
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -80,16 +81,39 @@ export function SearchBar() {
 
   return (
     <form onSubmit={handleSubmit} role="search" className="w-full max-w-lg">
-      <input
-        type="text"
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-        placeholder="Search or type a URL"
-        aria-label="Search or enter a URL"
-        autoFocus
-        autoComplete="off"
-        className="search-input"
-      />
+      <div className="search-box relative flex items-center">
+        {activeBang ? (
+          <img
+            src={faviconUrl(new URL(activeBang.url).origin)}
+            alt=""
+            className="search-icon rounded-full"
+          />
+        ) : (
+          <svg
+            className="search-icon text-gray-500"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+        )}
+        <input
+          type="text"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search or type a URL"
+          aria-label="Search or enter a URL"
+          autoFocus
+          autoComplete="off"
+          className="search-input"
+        />
+      </div>
     </form>
   );
 }

@@ -9,7 +9,7 @@ export default defineConfig({
     name: "Spotify Tab",
     description: "Extension",
     key: readFileSync("./keys/public-key.txt", "utf-8").trim(),
-    permissions: ["search"],
+    permissions: ["search", "favicon"],
   },
   vite: () => ({ plugins: [tailwindcss()] }),
 });
