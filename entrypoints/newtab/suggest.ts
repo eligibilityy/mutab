@@ -17,5 +17,5 @@ export async function fetchSuggestions(
 
   return data[1]
     .filter((item): item is string => typeof item === "string")
-    .slice(0, 6);
+    .slice(0, 5);
 }

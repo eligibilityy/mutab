@@ -10,7 +10,7 @@ export default defineConfig({
     description: "Extension",
     key: readFileSync("./keys/public-key.txt", "utf-8").trim(),
     host_permissions: ["https://suggestqueries.google.com/*"],
-    permissions: ["search", "favicon"],
+    permissions: ["search", "favicon", "identity", "storage"],
   },
   vite: () => ({ plugins: [tailwindcss()] }),
 });
