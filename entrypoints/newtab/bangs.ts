@@ -24,7 +24,7 @@ export const BANGS: Bang[] = [
 ];
 
 export function parseBang(text: string) {
-  if (!text.startsWith("!")) return;
+  if (!text.startsWith("!")) return null;
 
   const spaceIndex = text.indexOf(" ");
   const trigger = spaceIndex === -1 ? text : text.slice(0, spaceIndex);

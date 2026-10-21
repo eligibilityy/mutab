@@ -44,44 +44,35 @@ export function SearchBar() {
     if (!text) return;
 
     const bangMatch = parseBang(text);
-    const url = parseUrl(text);
-
     if (bangMatch) {
-      const { bang, query } = bangMatch;
-      const bangUrl = bang.url.replace("{q}", encodeURIComponent(query));
+      const { bang, query: bangQuery } = bangMatch;
 
-      if (!query) {
-        const bangAloneUrl = new URL(bang.url).origin;
-        window.location.assign(bangAloneUrl);
+      if (!bangQuery) {
+        window.location.assign(new URL(bang.url).origin);
         return;
       }
 
-      if (!bang) {
-        try {
-          await browser.search.query({
-            text,
-            disposition: "CURRENT_TAB",
-          });
-        } catch (error) {
-          console.error("Search failed:", error);
-        }
-        return;
-      }
-
-      window.location.assign(bangUrl);
+      window.location.assign(
+        bang.url.replace("{q}", encodeURIComponent(bangQuery)),
+      );
       return;
     }
 
+    if (text.startsWith("!")) {
+      window.location.assign(
+        `https://duckduckgo.com/?q=${encodeURIComponent(text)}`,
+      );
+      return;
+    }
+
+    const url = parseUrl(text);
     if (url) {
       window.location.assign(url.href);
       return;
     }
 
     try {
-      await browser.search.query({
-        text,
-        disposition: "CURRENT_TAB",
-      });
+      await browser.search.query({ text, disposition: "CURRENT_TAB" });
     } catch (error) {
       console.error("Search failed:", error);
     }
