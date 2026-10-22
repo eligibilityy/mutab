@@ -208,7 +208,7 @@ export function SearchBar() {
     <form
       onSubmit={handleSubmit}
       role="search"
-      className="w-full max-w-[28rem] relative"
+      className="w-full max-w-md relative"
     >
       <div className="search-box relative flex items-center">
         {activeBang ? (
