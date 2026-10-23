@@ -87,7 +87,6 @@ body {
   color: rgb(255 255 255 / 0.6);
 }
 
-/* ─── Clock (from your Helium page) ─── */
 .clock {
   font-size: clamp(4.5rem, 12vw, 8rem);
   font-weight: 500;
@@ -227,4 +226,24 @@ body {
   height: 50%;
   border-radius: 99px;
   background: rgb(175 190 255);
+}
+
+/* ─── Kawarp background ─── */
+.background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+
+.background.visible {
+  opacity: 1;
+}
+
+.background canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: saturate(2.5) brightness(0.65);
 }

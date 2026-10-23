@@ -35,7 +35,7 @@ export function useNowPlaying(intervalMs = 5000) {
     document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
-      stopped: true;
+      stopped = true;
       clearTimeout(timeoutId);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
