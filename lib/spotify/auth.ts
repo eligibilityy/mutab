@@ -1,3 +1,4 @@
+import { AccessRevokedError, SpotifyError } from "./errors";
 import { clearSpotifyState } from "./store";
 
 const CLIENT_ID = import.meta.env.WXT_SPOTIFY_CLIENT_ID;
@@ -45,7 +46,14 @@ async function requestToken(params: Record<string, string>) {
   });
 
   if (!response.ok) {
-    throw new Error(`Token request failed: ${response.status}`);
+    const body = (await response.json().catch(() => null)) as {
+      error?: string;
+    } | null;
+    if (body?.error === "invalid_grant") throw new AccessRevokedError();
+    throw new SpotifyError(
+      `Spotify token request failed: ${response.status}`,
+      response.status,
+    );
   }
   return (await response.json()) as TokenResponse;
 }
@@ -59,6 +67,11 @@ async function saveTokens(tokens: TokenResponse, oldRefreshToken = "") {
 
   await authItem.setValue(auth);
   return auth;
+}
+
+export async function expireAccessToken() {
+  const auth = await authItem.getValue();
+  if (auth) await authItem.setValue({ ...auth, expiresAt: 0 });
 }
 
 export async function login(onAuthorized?: () => void) {

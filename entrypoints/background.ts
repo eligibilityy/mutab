@@ -1,5 +1,6 @@
 import type { Browser } from "wxt/browser";
-import { authItem } from "@/lib/spotify/auth";
+import { authItem, logout } from "@/lib/spotify/auth";
+import { AccessRevokedError, SpotifyError } from "@/lib/spotify/errors";
 import {
   getCurrentlyPlaying,
   getProfile,
@@ -10,15 +11,19 @@ import {
   nowPlayingItem,
   profileItem,
   recentItem,
+  signOutReasonItem,
 } from "@/lib/spotify/store";
 
 const POLL_MS = 5000;
+const MAX_BACKOFF_MS = 60_000;
 
 export default defineBackground(() => {
   const watchers = new Set<Browser.runtime.Port>();
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
   let busy = false;
   let recentStale = true;
+  let failures = 0;
+  let blockedUntil = 0;
 
   async function sync() {
     if (!(await authItem.getValue())) {
@@ -41,21 +46,59 @@ export default defineBackground(() => {
     }
   }
 
+  function schedule(delay: number) {
+    clearTimeout(timeoutId);
+    if (watchers.size > 0) timeoutId = setTimeout(poll, delay);
+  }
+
+  function backoffDelay(error: unknown) {
+    if (error instanceof SpotifyError && error.retryAfterMs) {
+      return error.retryAfterMs;
+    }
+    failures += 1;
+    return Math.min(POLL_MS * 2 ** failures, MAX_BACKOFF_MS);
+  }
+
   async function poll() {
     if (busy) return;
+
+    const wait = blockedUntil - Date.now();
+    if (wait > 0) return schedule(wait);
+
     busy = true;
     clearTimeout(timeoutId);
+    let delay = POLL_MS;
 
     try {
       await sync();
+      failures = 0;
     } catch (error) {
-      console.error("Spotify sync failed:", error);
+      if (error instanceof AccessRevokedError) {
+        await logout();
+        await signOutReasonItem.setValue(error.message);
+      } else {
+        delay = backoffDelay(error);
+        blockedUntil = Date.now() + delay;
+        console.warn(
+          `Spotify sync failed, retrying in ${delay / 1000}s:`,
+          error,
+        );
+      }
     } finally {
       busy = false;
     }
 
-    if (watchers.size > 0) timeoutId = setTimeout(poll, POLL_MS);
+    schedule(delay);
   }
+
+  authItem.watch((auth, previous) => {
+    if (auth && !previous) {
+      recentStale = true;
+      poll();
+    } else if (!auth) {
+      clearSpotifyState();
+    }
+  });
 
   browser.runtime.onConnect.addListener((port) => {
     if (port.name !== "spotify-watch") return;

@@ -1,7 +1,7 @@
 import { LoaderCircle } from "lucide-react";
 import { getProfile } from "@/lib/spotify/api";
 import { login, logout } from "@/lib/spotify/auth";
-import { profileItem } from "@/lib/spotify/store";
+import { profileItem, signOutReasonItem } from "@/lib/spotify/store";
 import { useStorageValue } from "./useStorageValue";
 
 const STEP_LABELS = {
@@ -20,11 +20,13 @@ function friendlyError(error: unknown) {
 
 export function SpotifyStatus() {
   const profile = useStorageValue(profileItem);
+  const signOutReason = useStorageValue(signOutReasonItem);
   const [step, setStep] = useState<"opening" | "finishing" | null>(null);
   const [error, setError] = useState<string>();
 
   async function handleLogin() {
     setError(undefined);
+    await signOutReasonItem.removeValue();
     setStep("opening");
     try {
       await login(() => setStep("finishing"));
@@ -74,9 +76,9 @@ export function SpotifyStatus() {
           {step ? STEP_LABELS[step] : "Connect Spotify"}
         </button>
       )}
-      {!profile && error && (
+      {!profile && (error ?? signOutReason) && (
         <p className="status-error" role="alert">
-          {error}
+          {error ?? signOutReason}
         </p>
       )}
     </div>
