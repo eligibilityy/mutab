@@ -13,6 +13,20 @@
   --text-muted: rgb(255 255 255 / 0.5);
 }
 
+@property --accent {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgb(255 255 255);
+}
+
+:root {
+  --cover-color: rgb(255 255 255);
+}
+
+.is-playing {
+  --accent: oklch(from var(--cover-color) 0.8 min(c, 0.18) h);
+}
+
 html,
 body,
 #root {
@@ -100,7 +114,7 @@ body {
 }
 
 .clock .colon {
-  font-weight: 300;
+  color: var(--accent);
   opacity: 0.4;
 }
 
@@ -117,6 +131,7 @@ body {
   align-items: center;
   height: 100%;
   padding: 0 1.5rem;
+  transition: --accent 500ms var(--ease-out);
 }
 
 /* ─── Search ─── */
@@ -150,7 +165,7 @@ body {
 .search-input:focus {
   outline: none;
   background: var(--surface-strong);
-  border-color: rgb(255 255 255 / 0.2);
+  border-color: color-mix(in oklch, var(--accent) 45%, transparent);
 }
 
 .search-icon {
@@ -227,7 +242,7 @@ body {
 }
 
 .suggestion.selected {
-  background: rgb(255 255 255 / 0.1);
+  background: color-mix(in oklch, var(--accent) 16%, transparent);
   color: white;
 }
 
