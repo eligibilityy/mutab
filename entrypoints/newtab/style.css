@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
-@import "@fontsource/inter/300.css";
-@import "@fontsource/inter/400.css";
-@import "@fontsource/inter/500.css";
-@import "@fontsource/inter/600.css";
+@import "@fontsource/open-runde/400.css";
+@import "@fontsource/open-runde/500.css";
+@import "@fontsource/open-runde/600.css";
+@import "@fontsource/open-runde/700.css";
 
 :root {
-  --accent: #152671;
-  --accent-mid: #1b2c78;
-  --accent-light: #5669bd;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --surface: rgb(255 255 255 / 0.08);
+  --surface-strong: rgb(255 255 255 / 0.12);
+  --border: rgb(255 255 255 / 0.08);
+  --text-muted: rgb(255 255 255 / 0.5);
 }
 
 html,
@@ -18,13 +20,9 @@ body,
 }
 
 body {
-  background: linear-gradient(
-    180deg,
-    var(--accent) 10%,
-    var(--accent-mid) 30%,
-    var(--accent-light) 100%
-  );
-  font-family: "Inter", sans-serif;
+  background-color: black;
+  font-family: "Open Runde", system-ui, sans-serif;
+  font-synthesis: none;
   color: white;
   overflow: hidden;
 }
@@ -120,112 +118,125 @@ body {
   padding: 0 1.5rem;
 }
 
+/* ─── Search ─── */
 .search-input {
   width: 100%;
-  padding: 0.8rem 1.25rem 0.8rem 3rem;
-  border-radius: 0.75rem;
-  background: #fff;
-  color: #111827;
+  height: 3rem;
+  padding: 0 1.25rem 0 2.875rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: var(--surface);
+  backdrop-filter: blur(16px);
+  color: white;
   font-size: 1rem;
-  line-height: 1.5rem;
   font-weight: 500;
-  box-shadow: 0 4px 20px rgb(0 0 0 / 0.1);
-  transition: box-shadow 0.12s;
-}
-
-.search-box {
-  transition: transform 0.35s;
-}
-
-.search-box:focus-within {
-  transform: translateY(-2px);
+  transition:
+    background-color 150ms var(--ease-out),
+    border-color 150ms var(--ease-out);
 }
 
 .search-input::placeholder {
-  color: rgb(21 38 113 / 0.5);
-  font-size: 1rem;
+  color: var(--text-muted);
   font-weight: 400;
-  letter-spacing: 0.01em;
+}
+
+@media (hover: hover) {
+  .search-input:hover {
+    background: var(--surface-strong);
+  }
 }
 
 .search-input:focus {
   outline: none;
-  box-shadow:
-    0 0 0 5px rgb(175 190 255 / 0.2),
-    0 14px 40px rgb(0 0 0 / 0.35);
+  background: var(--surface-strong);
+  border-color: rgb(255 255 255 / 0.2);
 }
 
 .search-icon {
   position: absolute;
-  left: 1.1rem;
-  width: 1.1rem;
-  height: 1.1rem;
-  pointer-events: none;
+  left: 1rem;
   z-index: 1;
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--text-muted);
+  pointer-events: none;
 }
 
+/* ─── Suggestions ─── */
 .suggestions {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 0.5rem);
   left: 0;
   right: 0;
   z-index: 10;
   display: flex;
   flex-direction: column;
-  padding: 8px;
-  border-radius: 12px;
-  border: 1px solid rgb(255 255 255 / 0.12);
-  background: rgb(86 105 189 / 0.25);
-  backdrop-filter: blur(32px);
-  box-shadow: 0 10px 40px rgb(0 0 0 / 0.25);
+  padding: 0.375rem;
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  background: rgb(20 20 20 / 0.7);
+  backdrop-filter: blur(24px);
+  transform-origin: top center;
+  transition:
+    opacity 150ms var(--ease-out),
+    transform 150ms var(--ease-out);
 }
 
-/* In playing mode the search bar is at the bottom: open the list upward */
+@starting-style {
+  .suggestions {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+}
+
+/* Playing mode: the list opens upward, so it grows from the bottom */
 .is-playing .suggestions {
   top: auto;
-  bottom: calc(100% + 8px);
+  bottom: calc(100% + 0.5rem);
+  transform-origin: bottom center;
+}
+
+@starting-style {
+  .is-playing .suggestions {
+    transform: translateY(4px) scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .suggestions {
+    transition-property: opacity;
+  }
 }
 
 .suggestion {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 12px 16px;
-  border-radius: 8px;
+  height: 2.5rem;
+  padding: 0 0.875rem;
+  border-radius: 1.125rem; /* 1.5rem panel − 0.375rem padding */
+  color: rgb(255 255 255 / 0.85);
   cursor: pointer;
-  transition:
-    padding 0.12s,
-    background-color 0.12s;
 }
 
-.suggestion:hover {
-  background: rgb(175 190 255 / 0.12);
-}
-
-.bang-trigger {
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: rgb(0 0 0 / 0.55);
-  font-family: ui-monospace, monospace;
-  font-size: 0.875rem;
-  font-weight: 600;
+@media (hover: hover) {
+  .suggestion:hover {
+    background: rgb(255 255 255 / 0.06);
+  }
 }
 
 .suggestion.selected {
-  position: relative;
-  padding-left: 24px;
-  background: rgb(175 190 255 / 0.12);
+  background: rgb(255 255 255 / 0.1);
+  color: white;
 }
 
-.suggestion.selected::before {
-  content: "";
-  position: absolute;
-  top: 25%;
-  left: 10px;
-  width: 4px;
-  height: 50%;
-  border-radius: 99px;
-  background: rgb(175 190 255);
+.bang-trigger {
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.5rem;
+  background: rgb(255 255 255 / 0.1);
+  font-family: ui-monospace, monospace;
+  font-size: 0.8125rem;
+  font-weight: 500;
 }
 
 /* ─── Kawarp background ─── */
