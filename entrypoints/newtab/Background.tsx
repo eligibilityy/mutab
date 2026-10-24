@@ -1,4 +1,5 @@
 import { Kawarp } from "@kawarp/core";
+import { coverColor } from "./coverColor";
 
 const RESOLUTION = 0.5;
 
@@ -42,10 +43,25 @@ export function Background({ coverUrl, active }: BackgroundProps) {
   }, []);
 
   useEffect(() => {
-    if (!coverUrl) return;
-    kawarpRef.current
-      ?.loadImage(coverUrl)
+    const kawarp = kawarpRef.current;
+    if (!coverUrl || !kawarp) return;
+    let ignore = false;
+
+    kawarp
+      .loadImage(coverUrl)
+      .then(() => kawarp.sampleSource(16))
+      .then((pixels) => {
+        if (ignore || !pixels) return;
+        const color = coverColor(pixels);
+        if (color) {
+          document.documentElement.style.setProperty("--cover-color", color);
+        }
+      })
       .catch((error) => console.error("Failed to load cover image:", error));
+
+    return () => {
+      ignore = true;
+    };
   }, [coverUrl]);
 
   useEffect(() => {
