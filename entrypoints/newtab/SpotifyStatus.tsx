@@ -12,7 +12,7 @@ const STEP_LABELS = {
   finishing: "Finishing up...",
 } as const;
 
-async function fetchProfileName() {
+async function fetchProfile() {
   const token = await getAccessToken();
   if (!token) return null;
 
@@ -46,7 +46,7 @@ export function SpotifyStatus() {
 
   useEffect(() => {
     let ignore = false;
-    fetchProfileName()
+    fetchProfile()
       .then((profile) => {
         if (ignore) return;
         setStatus(
@@ -66,7 +66,7 @@ export function SpotifyStatus() {
     setStatus({ kind: "connecting", step: "opening" });
     try {
       await login(() => setStatus({ kind: "connecting", step: "finishing" }));
-      const profile = await fetchProfileName();
+      const profile = await fetchProfile();
       setStatus(
         profile ? { kind: "signed-in", ...profile } : { kind: "signed-out" },
       );
@@ -91,7 +91,7 @@ export function SpotifyStatus() {
             {status.avatarUrl && (
               <img
                 src={status.avatarUrl}
-                alt={status.name}
+                alt=""
                 className="avatar rounded-full size-6"
               />
             )}

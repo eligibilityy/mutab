@@ -5,10 +5,13 @@ import { SpotifyStatus } from "./SpotifyStatus";
 import { NowPlayingCard } from "./NowPlayingCard";
 import { useNowPlaying } from "./spotify/useNowPlaying";
 import { Background } from "./Background";
+import { RecentlyPlayed } from "./spotify/RecentlyPlayed";
+import { useRecentlyPlayed } from "./spotify/useRecentlyPlayed";
 
 function App() {
   const nowPlaying = useNowPlaying();
   const playing = nowPlaying?.isPlaying === true;
+  const recent = useRecentlyPlayed(!playing);
 
   return (
     <>
@@ -21,6 +24,7 @@ function App() {
           {nowPlaying?.isPlaying && <NowPlayingCard track={nowPlaying} />}
         </div>
         <SearchBar />
+        {!playing && <RecentlyPlayed tracks={recent} />}
         <div className="spacer-outer" />
       </main>
     </>
