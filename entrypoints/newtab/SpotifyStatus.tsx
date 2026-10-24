@@ -19,6 +19,7 @@ export function SpotifyStatus() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadProfile().catch((error) => setError(String(error)));
   }, []);
 

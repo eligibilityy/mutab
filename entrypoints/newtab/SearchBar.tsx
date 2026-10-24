@@ -219,7 +219,7 @@ export function SearchBar() {
           />
         ) : (
           <svg
-            className="search-icon text-gray-500"
+            className="search-icon"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
