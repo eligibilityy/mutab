@@ -1,4 +1,5 @@
-import { getAccessToken } from "./auth";
+import { expireAccessToken, getAccessToken } from "./auth";
+import { AccessRevokedError, SpotifyError } from "./errors";
 
 export type Track = {
   id: string;
@@ -62,17 +63,39 @@ function toTrack(item: SpotifyTrack): Track {
   };
 }
 
-async function spotifyFetch<T>(path: string): Promise<T | null> {
+async function spotifyFetch<T>(
+  path: string,
+  retried = false,
+): Promise<T | null> {
   const token = await getAccessToken();
-
   if (!token) return null;
 
   const response = await fetch(`https://api.spotify.com/v1${path}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
+
   if (response.status === 204) return null;
+
+  if (response.status === 401 && !retried) {
+    await expireAccessToken();
+    return spotifyFetch<T>(path, true);
+  }
+  if (response.status === 401) throw new AccessRevokedError();
+  if (response.status === 403) {
+    throw new AccessRevokedError(
+      "This account isn't on the allowlist. Please double check with the developer.",
+      403,
+    );
+  }
+  if (response.status === 429) {
+    const seconds = Number(response.headers.get("Retry-After")) || 30;
+    throw new SpotifyError("Rate limited by Spotify", 429, seconds * 1000);
+  }
   if (!response.ok) {
-    throw new Error(`Spotify ${path} failed: ${response.status}`);
+    throw new SpotifyError(
+      `Spotify ${path} failed: ${response.status}`,
+      response.status,
+    );
   }
   return (await response.json()) as T;
 }
@@ -110,17 +133,7 @@ export async function getRecentlyPlayed(): Promise<Track[]> {
 }
 
 export async function getProfile(): Promise<Profile | null> {
-  try {
-    const data = await spotifyFetch<ProfileResponse>("/me");
-    if (!data) return null;
-    return { name: data.display_name, avatarUrl: data.images?.[0]?.url };
-  } catch (error) {
-    if (String(error).includes("403")) {
-      throw new Error(
-        "This account isn't on the allowlist. Please double check with the developer.",
-        { cause: error },
-      );
-    }
-    throw error;
-  }
+  const data = await spotifyFetch<ProfileResponse>("/me");
+  if (!data) return null;
+  return { name: data.display_name, avatarUrl: data.images?.[0]?.url };
 }

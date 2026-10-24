@@ -1,6 +1,10 @@
 import type { NowPlaying, Profile, Track } from "./api";
 
 export const profileItem = storage.defineItem<Profile>("local:spotifyProfile");
+export const signOutReasonItem = storage.defineItem<string>(
+  "local:signOutReason",
+);
+
 export const nowPlayingItem =
   storage.defineItem<NowPlaying>("local:nowPlaying");
 export const recentItem = storage.defineItem<Track[]>("local:recentlyPlayed", {
