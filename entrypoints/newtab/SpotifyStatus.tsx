@@ -5,7 +5,7 @@ type Status =
   | { kind: "checking" }
   | { kind: "signed-out"; error?: string }
   | { kind: "connecting"; step: "opening" | "finishing" }
-  | { kind: "signed-in"; name: string };
+  | { kind: "signed-in"; name: string; avatarUrl?: string };
 
 const STEP_LABELS = {
   opening: "Opening Spotify...",
@@ -27,8 +27,9 @@ async function fetchProfileName() {
   if (!response.ok) {
     throw new Error(`Couldn't load your profile (${response.status}).`);
   }
-  const profile: { display_name: string } = await response.json();
-  return profile.display_name;
+  const profile: { display_name: string; images?: { url: string }[] } =
+    await response.json();
+  return { name: profile.display_name, avatarUrl: profile.images?.[0]?.url };
 }
 
 function friendlyError(error: unknown) {
@@ -46,9 +47,11 @@ export function SpotifyStatus() {
   useEffect(() => {
     let ignore = false;
     fetchProfileName()
-      .then((name) => {
+      .then((profile) => {
         if (ignore) return;
-        setStatus(name ? { kind: "signed-in", name } : { kind: "signed-out" });
+        setStatus(
+          profile ? { kind: "signed-in", ...profile } : { kind: "signed-out" },
+        );
       })
       .catch((error) => {
         if (!ignore)
@@ -63,8 +66,10 @@ export function SpotifyStatus() {
     setStatus({ kind: "connecting", step: "opening" });
     try {
       await login(() => setStatus({ kind: "connecting", step: "finishing" }));
-      const name = await fetchProfileName();
-      setStatus(name ? { kind: "signed-in", name } : { kind: "signed-out" });
+      const profile = await fetchProfileName();
+      setStatus(
+        profile ? { kind: "signed-in", ...profile } : { kind: "signed-out" },
+      );
     } catch (error) {
       setStatus({ kind: "signed-out", error: friendlyError(error) });
     }
@@ -82,7 +87,16 @@ export function SpotifyStatus() {
     <div className="spotify-status" aria-live="polite">
       {status.kind === "signed-in" ? (
         <div className="account">
-          <span>{status.name}</span>
+          <div className="flex flex-row items-center gap-2">
+            {status.avatarUrl && (
+              <img
+                src={status.avatarUrl}
+                alt={status.name}
+                className="avatar rounded-full size-6"
+              />
+            )}
+            <span>{status.name}</span>
+          </div>
           <button onClick={handleLogout} className="logout">
             Log out
           </button>
