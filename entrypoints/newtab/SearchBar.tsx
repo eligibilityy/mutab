@@ -3,6 +3,7 @@ import {
   type SubmitEvent,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
+import { Globe, Search } from "lucide-react";
 import { faviconUrl, parseBang, BANGS, type Bang } from "./bangs";
 import { fetchSuggestions } from "./suggest";
 
@@ -92,6 +93,8 @@ export function SearchBar() {
   }, [query]);
 
   const activeBang = parseBang(query)?.bang;
+  // Typing a URL? Show a globe so it's clear Enter opens the site
+  const SearchIcon = parseUrl(query.trim()) ? Globe : Search;
 
   const bangSuggestions =
     query.startsWith("!") && !query.includes(" ")
@@ -218,19 +221,11 @@ export function SearchBar() {
             className="search-icon rounded-full"
           />
         ) : (
-          <svg
+          <SearchIcon
             className="search-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            strokeWidth={2.5}
             aria-hidden="true"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
+          />
         )}
         <input
           ref={inputRef}
@@ -290,17 +285,11 @@ export function SearchBar() {
                 </>
               ) : (
                 <>
-                  <svg
+                  <Search
                     className="size-4 shrink-0 text-white/40"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
+                    strokeWidth={2.5}
                     aria-hidden="true"
-                  >
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
+                  />
                   <span className="truncate">{suggestion.text}</span>
                 </>
               )}

@@ -59,7 +59,7 @@ async function saveTokens(tokens: TokenResponse, oldRefreshToken = "") {
   return auth;
 }
 
-export async function login() {
+export async function login(onAuthorized?: () => void) {
   const verifier = randomString(64);
   const state = randomString(16);
   const redirectUri = browser.identity.getRedirectURL();
@@ -90,6 +90,8 @@ export async function login() {
     throw new Error("Spotify authentication error: State mismatch");
   const code = result.get("code");
   if (!code) throw new Error("Spotify authentication error: No code returned");
+
+  onAuthorized?.();
 
   const tokens = await requestToken({
     grant_type: "authorization_code",

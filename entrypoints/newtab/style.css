@@ -258,3 +258,70 @@ body {
   height: 100%;
   filter: saturate(2.5) brightness(0.65);
 }
+
+.spotify-status {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.connect-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.25rem;
+  padding: 0 1rem;
+  border-radius: 9999px;
+  background: #1ed760;
+  color: black;
+  font-weight: 600;
+  transition:
+    transform 150ms var(--ease-out),
+    opacity 150ms var(--ease-out);
+}
+
+.connect-button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.connect-button:disabled {
+  cursor: progress;
+  opacity: 0.85;
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: opacity 200ms var(--ease-out);
+}
+
+.logout {
+  color: var(--text-muted);
+  transition: color 150ms var(--ease-out);
+}
+
+@media (hover: hover) {
+  .logout:hover {
+    color: white;
+  }
+}
+
+.status-error {
+  max-width: 16rem;
+  text-align: right;
+  color: rgb(255 150 150);
+  transition: opacity 200ms var(--ease-out);
+}
+
+@starting-style {
+  .account,
+  .status-error {
+    opacity: 0;
+  }
+}
