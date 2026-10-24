@@ -11,7 +11,22 @@ export type Track = {
   uri: string;
 };
 
-export type NowPlaying = Track & { isPlaying: boolean };
+export type NowPlaying = Track & {
+  isPlaying: boolean;
+  progressMs: number;
+  durationMs: number;
+  updatedAt: number;
+};
+
+export type Profile = {
+  name: string;
+  avatarUrl?: string;
+};
+
+type ProfileResponse = {
+  display_name: string;
+  images?: { url: string }[];
+};
 
 type SpotifyTrack = {
   id: string;
@@ -20,11 +35,13 @@ type SpotifyTrack = {
   artists: { name: string }[];
   album: { name: string; images: { url: string }[] };
   external_urls: { spotify: string };
+  duration_ms: number;
 };
 
 type CurrentlyPlayingResponse = {
   is_playing: boolean;
   item: SpotifyTrack | null;
+  progress_ms: number | null;
 };
 
 type RecentlyPlayedResponse = {
@@ -65,7 +82,13 @@ export async function getCurrentlyPlaying(): Promise<NowPlaying | null> {
     "/me/player/currently-playing",
   );
   if (!data?.item) return null;
-  return { ...toTrack(data.item), isPlaying: data.is_playing };
+  return {
+    ...toTrack(data.item),
+    isPlaying: data.is_playing,
+    progressMs: data.progress_ms ?? 0,
+    durationMs: data.item.duration_ms,
+    updatedAt: Date.now(),
+  };
 }
 
 export async function getRecentlyPlayed(): Promise<Track[]> {
@@ -84,4 +107,20 @@ export async function getRecentlyPlayed(): Promise<Track[]> {
     })
     .slice(0, 5)
     .map(toTrack);
+}
+
+export async function getProfile(): Promise<Profile | null> {
+  try {
+    const data = await spotifyFetch<ProfileResponse>("/me");
+    if (!data) return null;
+    return { name: data.display_name, avatarUrl: data.images?.[0]?.url };
+  } catch (error) {
+    if (String(error).includes("403")) {
+      throw new Error(
+        "This account isn't on the allowlist. Please double check with the developer.",
+        { cause: error },
+      );
+    }
+    throw error;
+  }
 }

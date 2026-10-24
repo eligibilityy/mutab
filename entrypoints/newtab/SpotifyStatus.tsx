@@ -1,36 +1,13 @@
 import { LoaderCircle } from "lucide-react";
-import { getAccessToken, login, logout } from "./spotify/auth";
-
-type Status =
-  | { kind: "checking" }
-  | { kind: "signed-out"; error?: string }
-  | { kind: "connecting"; step: "opening" | "finishing" }
-  | { kind: "signed-in"; name: string; avatarUrl?: string };
+import { getProfile } from "@/lib/spotify/api";
+import { login, logout } from "@/lib/spotify/auth";
+import { profileItem } from "@/lib/spotify/store";
+import { useStorageValue } from "./useStorageValue";
 
 const STEP_LABELS = {
   opening: "Opening Spotify...",
   finishing: "Finishing up...",
 } as const;
-
-async function fetchProfile() {
-  const token = await getAccessToken();
-  if (!token) return null;
-
-  const response = await fetch("https://api.spotify.com/v1/me", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (response.status === 403) {
-    throw new Error(
-      "This account isn't on the allowlist. Please double check with the developer.",
-    );
-  }
-  if (!response.ok) {
-    throw new Error(`Couldn't load your profile (${response.status}).`);
-  }
-  const profile: { display_name: string; images?: { url: string }[] } =
-    await response.json();
-  return { name: profile.display_name, avatarUrl: profile.images?.[0]?.url };
-}
 
 function friendlyError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
@@ -42,62 +19,42 @@ function friendlyError(error: unknown) {
 }
 
 export function SpotifyStatus() {
-  const [status, setStatus] = useState<Status>({ kind: "checking" });
-
-  useEffect(() => {
-    let ignore = false;
-    fetchProfile()
-      .then((profile) => {
-        if (ignore) return;
-        setStatus(
-          profile ? { kind: "signed-in", ...profile } : { kind: "signed-out" },
-        );
-      })
-      .catch((error) => {
-        if (!ignore)
-          setStatus({ kind: "signed-out", error: friendlyError(error) });
-      });
-    return () => {
-      ignore = true;
-    };
-  }, []);
+  const profile = useStorageValue(profileItem);
+  const [step, setStep] = useState<"opening" | "finishing" | null>(null);
+  const [error, setError] = useState<string>();
 
   async function handleLogin() {
-    setStatus({ kind: "connecting", step: "opening" });
+    setError(undefined);
+    setStep("opening");
     try {
-      await login(() => setStatus({ kind: "connecting", step: "finishing" }));
-      const profile = await fetchProfile();
-      setStatus(
-        profile ? { kind: "signed-in", ...profile } : { kind: "signed-out" },
-      );
+      await login(() => setStep("finishing"));
+      await profileItem.setValue(await getProfile());
     } catch (error) {
-      setStatus({ kind: "signed-out", error: friendlyError(error) });
+      await logout();
+      setError(friendlyError(error));
+    } finally {
+      setStep(null);
     }
   }
 
-  async function handleLogout() {
-    await logout();
-    setStatus({ kind: "signed-out" });
-  }
-
-  if (status.kind === "checking") return null;
-  const connecting = status.kind === "connecting";
+  if (profile === undefined) return null;
+  const connecting = step !== null;
 
   return (
     <div className="spotify-status" aria-live="polite">
-      {status.kind === "signed-in" ? (
+      {profile ? (
         <div className="account">
           <div className="flex flex-row items-center gap-2">
-            {status.avatarUrl && (
+            {profile.avatarUrl && (
               <img
-                src={status.avatarUrl}
+                src={profile.avatarUrl}
                 alt=""
                 className="avatar rounded-full size-6"
               />
             )}
-            <span>{status.name}</span>
+            <span>{profile.name}</span>
           </div>
-          <button onClick={handleLogout} className="logout">
+          <button onClick={logout} className="logout">
             Log out
           </button>
         </div>
@@ -114,12 +71,12 @@ export function SpotifyStatus() {
               aria-hidden="true"
             />
           )}
-          {connecting ? STEP_LABELS[status.step] : "Connect Spotify"}
+          {step ? STEP_LABELS[step] : "Connect Spotify"}
         </button>
       )}
-      {status.kind === "signed-out" && status.error && (
+      {!profile && error && (
         <p className="status-error" role="alert">
-          {status.error}
+          {error}
         </p>
       )}
     </div>

@@ -1,17 +1,22 @@
+import { recentItem } from "@/lib/spotify/store";
+import { Background } from "./Background";
 import { Clock } from "./Clock";
+import { NowPlayingCard } from "./NowPlayingCard";
+import { RecentlyPlayed } from "./RecentlyPlayed";
 import { SearchBar } from "./SearchBar";
 import { SpotifyStatus } from "./SpotifyStatus";
-
-import { NowPlayingCard } from "./NowPlayingCard";
-import { useNowPlaying } from "./spotify/useNowPlaying";
-import { Background } from "./Background";
-import { RecentlyPlayed } from "./spotify/RecentlyPlayed";
-import { useRecentlyPlayed } from "./spotify/useRecentlyPlayed";
+import { useNowPlaying } from "./useNowPlaying";
+import { useSpotifyWatcher } from "./useSpotifyWatcher";
+import { useStorageValue } from "./useStorageValue";
 
 function App() {
+  useSpotifyWatcher();
   const nowPlaying = useNowPlaying();
+  const recent = useStorageValue(recentItem) ?? [];
+
+  if (nowPlaying === undefined) return null;
+
   const playing = nowPlaying?.isPlaying === true;
-  const recent = useRecentlyPlayed(!playing);
 
   return (
     <>

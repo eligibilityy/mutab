@@ -1,3 +1,5 @@
+import { clearSpotifyState } from "./store";
+
 const CLIENT_ID = import.meta.env.WXT_SPOTIFY_CLIENT_ID;
 const SCOPES = [
   "user-read-currently-playing",
@@ -17,7 +19,7 @@ type TokenResponse = {
   expires_in: number;
 };
 
-const authItem = storage.defineItem<SpotifyAuth>("local:spotifyAuth");
+export const authItem = storage.defineItem<SpotifyAuth>("local:spotifyAuth");
 
 function randomString(length: number) {
   const chars =
@@ -125,4 +127,5 @@ export async function getAccessToken() {
 
 export async function logout() {
   await authItem.removeValue();
+  await clearSpotifyState();
 }

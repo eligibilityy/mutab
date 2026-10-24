@@ -1,4 +1,4 @@
-import type { NowPlaying } from "./spotify/api";
+import type { NowPlaying } from "@/lib/spotify/api";
 
 export function NowPlayingCard({ track }: { track: NowPlaying }) {
   return (

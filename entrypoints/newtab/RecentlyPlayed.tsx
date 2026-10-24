@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { Track } from "./api";
+import type { Track } from "@/lib/spotify/api";
 
 export function RecentlyPlayed({ tracks }: { tracks: Track[] }) {
   if (tracks.length === 0) return null;
