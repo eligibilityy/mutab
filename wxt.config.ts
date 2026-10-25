@@ -6,8 +6,8 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   modules: ["@wxt-dev/module-react"],
   manifest: {
-    name: "Spotify Tab",
-    description: "Extension",
+    name: "Jukebox",
+    description: "A new tab extension that shows your Spotify status",
     key: readFileSync("./keys/public-key.txt", "utf-8").trim(),
     host_permissions: ["https://suggestqueries.google.com/*"],
     permissions: ["search", "favicon", "identity", "storage"],
