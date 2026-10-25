@@ -1,8 +1,8 @@
 {
-  "name": "tab-yiliya-me",
-  "description": "manifest.json description",
+  "name": "jukebox",
+  "description": "A new tab extension that shows your Spotify status",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "wxt",
