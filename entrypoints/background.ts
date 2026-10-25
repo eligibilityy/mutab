@@ -112,13 +112,4 @@ export default defineBackground(() => {
     recentStale = true;
     poll();
   });
-
-  authItem.watch((auth) => {
-    if (auth) {
-      recentStale = true;
-      poll();
-    } else {
-      clearSpotifyState();
-    }
-  });
 });
