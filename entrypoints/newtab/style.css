@@ -100,6 +100,38 @@ body {
   color: rgb(255 255 255 / 0.6);
 }
 
+.progress {
+  width: min(38vh, 22rem);
+  height: 4px;
+  margin-top: 1rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.2);
+}
+
+.progress-fill {
+  height: 100%;
+  background: rgb(255 255 255 / 0.85);
+  transform-origin: left;
+  transition: transform 1s linear;
+}
+
+.progress-times {
+  display: flex;
+  justify-content: space-between;
+  width: min(38vh, 22rem);
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: rgb(255 255 255 / 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-fill {
+    transition: none;
+  }
+}
+
 .clock {
   font-size: clamp(4.5rem, 12vw, 8rem);
   font-weight: 500;
