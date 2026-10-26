@@ -13,7 +13,10 @@ export function NowPlayingCard({ track }: { track: NowPlaying }) {
   const fraction = track.durationMs > 0 ? progressMs / track.durationMs : 0;
 
   return (
-    <a href={track.url} className="now-playing">
+    <a
+      href={track.url}
+      className={`now-playing ${track.isPlaying ? "" : "is-paused"}`}
+    >
       {track.coverUrl && (
         <img
           src={track.coverUrl}

@@ -6,9 +6,10 @@ export function useProgress(track: NowPlaying) {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
+    if (!track.isPlaying) return;
     const intervalId = setInterval(() => setNow(Date.now()), TICK_MS);
     return () => clearInterval(intervalId);
-  }, []);
+  }, [track.isPlaying]);
 
   if (!track.isPlaying) return track.progressMs;
 
