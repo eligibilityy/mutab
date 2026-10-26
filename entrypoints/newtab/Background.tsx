@@ -5,10 +5,11 @@ const RESOLUTION = 0.5;
 
 type BackgroundProps = {
   coverUrl: string | null;
-  active: boolean;
+  visible: boolean;
+  animate: boolean;
 };
 
-export function Background({ coverUrl, active }: BackgroundProps) {
+export function Background({ coverUrl, visible, animate }: BackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const kawarpRef = useRef<Kawarp | null>(null);
 
@@ -68,7 +69,7 @@ export function Background({ coverUrl, active }: BackgroundProps) {
     const kawarp = kawarpRef.current;
     if (!kawarp) return;
 
-    if (active) {
+    if (animate) {
       const reduceMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       ).matches;
@@ -77,9 +78,12 @@ export function Background({ coverUrl, active }: BackgroundProps) {
     } else {
       kawarp.stop();
     }
-  }, [active]);
+  }, [animate]);
   return (
-    <div className={`background ${active ? "visible" : ""}`} aria-hidden="true">
+    <div
+      className={`background ${visible ? "visible" : ""}`}
+      aria-hidden="true"
+    >
       <canvas ref={canvasRef} />
     </div>
   );

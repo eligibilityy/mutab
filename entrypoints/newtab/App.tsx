@@ -16,20 +16,25 @@ function App() {
 
   if (nowPlaying === undefined) return null;
 
+  const hasTrack = nowPlaying !== null;
   const playing = nowPlaying?.isPlaying === true;
 
   return (
     <>
-      <Background coverUrl={nowPlaying?.coverUrl ?? null} active={playing} />
-      <main className={`layout ${playing ? "is-playing" : "is-idle"}`}>
+      <Background
+        visible={hasTrack}
+        coverUrl={nowPlaying?.coverUrl ?? null}
+        animate={playing}
+      />
+      <main className={`layout ${hasTrack ? "is-playing" : "is-idle"}`}>
         <SpotifyStatus />
         <div className="spacer-outer" />
-        <Clock compact={playing} />
+        <Clock compact={hasTrack} />
         <div className="spacer-center">
-          {nowPlaying?.isPlaying && <NowPlayingCard track={nowPlaying} />}
+          {nowPlaying && <NowPlayingCard track={nowPlaying} />}
         </div>
         <SearchBar />
-        {!playing && <RecentlyPlayed tracks={recent} />}
+        {!hasTrack && <RecentlyPlayed tracks={recent} />}
         <div className="spacer-outer" />
       </main>
     </>

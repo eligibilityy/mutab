@@ -71,6 +71,11 @@ body {
   align-items: center;
   max-width: 22rem;
   text-align: center;
+  transition: opacity 0.4s ease;
+}
+
+.now-playing.is-paused {
+  opacity: 0.55;
 }
 
 .cover {

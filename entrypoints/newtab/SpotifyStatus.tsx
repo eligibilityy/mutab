@@ -9,9 +9,21 @@ const STEP_LABELS = {
   finishing: "Finishing up...",
 } as const;
 
+const AUTH_FLOW_BUSY = "only one web auth flow";
+
+function isAuthFlowBusy(error: unknown) {
+  return (
+    error instanceof Error &&
+    error.message.toLowerCase().includes(AUTH_FLOW_BUSY)
+  );
+}
+
 function friendlyError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
   if (message.includes("did not approve")) return undefined;
+  if (isAuthFlowBusy(error)) {
+    return "Spotify is already open in another tab. Please finish the login there.";
+  }
   if (message.includes("could not be loaded")) {
     return "Couldn't reach Spotify. Please check your connection.";
   }
@@ -25,14 +37,14 @@ export function SpotifyStatus() {
   const [error, setError] = useState<string>();
 
   async function handleLogin() {
-    setError(undefined);
-    await signOutReasonItem.removeValue();
     setStep("opening");
+    setError(undefined);
     try {
+      await signOutReasonItem.removeValue();
       await login(() => setStep("finishing"));
       await profileItem.setValue(await getProfile());
     } catch (error) {
-      await logout();
+      if (!isAuthFlowBusy(error)) await logout();
       setError(friendlyError(error));
     } finally {
       setStep(null);
