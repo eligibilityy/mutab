@@ -32,7 +32,27 @@ import { useStorageValue } from "./useStorageValue";
 
 // Same curve as --ease-out in style.css, so CSS and Motion feel alike
 const EASE_OUT = [0.23, 1, 0.32, 1] as const;
+// Springs keep their velocity when interrupted, so switching modes mid-resize
+// carries on smoothly instead of restarting. No bounce: fluid, not wobbly.
+const SPRING = { type: "spring", bounce: 0, duration: 0.4 } as const;
+const FADE = { duration: 0.2, ease: EASE_OUT } as const;
 const EMPTY_DRAFT: LinkDraft = { title: "", url: "" };
+
+// Content swaps blur out while the container resizes, then the new content
+// blurs in, so the two never visibly overlap as hard edges.
+function useSwapAnimation() {
+  const reduceMotion = useReducedMotion();
+  const hidden = reduceMotion
+    ? { opacity: 0 }
+    : { opacity: 0, scale: 0.97, filter: "blur(4px)" };
+
+  return {
+    initial: hidden,
+    animate: { opacity: 1, scale: 1, filter: "blur(0px)" },
+    exit: hidden,
+    transition: FADE,
+  };
+}
 
 type Mode = "view" | "edit";
 
@@ -120,25 +140,32 @@ function QuickDialPanel({
 }: PanelProps) {
   const [contentRef, height] = useMeasuredHeight<HTMLDivElement>();
   const reduceMotion = useReducedMotion();
+  const swap = useSwapAnimation();
 
   return (
     <motion.div
       className="quick-dial-body"
       initial={false}
       animate={{ height: height > 0 ? height : "auto" }}
-      transition={{ duration: reduceMotion ? 0 : 0.25, ease: EASE_OUT }}
+      transition={reduceMotion ? { duration: 0 } : SPRING}
     >
       <div ref={contentRef} className="quick-dial-content">
-        {mode === "view" ? (
-          <ViewMode links={links} onEdit={() => onModeChange("edit")} />
-        ) : (
-          <EditMode
-            links={links}
-            editingId={editingId}
-            onEditingChange={onEditingChange}
-            onDone={() => onModeChange("view")}
-          />
-        )}
+        {/* popLayout takes the outgoing mode out of the flow, so the measured
+            height is already the new mode's while the old one fades away */}
+        <AnimatePresence initial={false} mode="popLayout">
+          <motion.div key={mode} className="quick-dial-swap" {...swap}>
+            {mode === "view" ? (
+              <ViewMode links={links} onEdit={() => onModeChange("edit")} />
+            ) : (
+              <EditMode
+                links={links}
+                editingId={editingId}
+                onEditingChange={onEditingChange}
+                onDone={() => onModeChange("view")}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </motion.div>
   );
@@ -205,6 +232,7 @@ function EditMode({
   onDone,
 }: EditModeProps) {
   const full = links.length >= MAX_QUICK_LINKS;
+  const swap = useSwapAnimation();
 
   function handleAdd(draft: LinkDraft) {
     const result = addLink(links, draft);
@@ -231,37 +259,46 @@ function EditMode({
       <ul className="quick-dial-rows">
         <AnimatePresence initial={false} mode="popLayout">
           {links.map((link, index) => (
+            // layout="position": rows only slide. Full `layout` would also
+            // animate size by scaling, squashing the text when a row
+            // swaps to its edit form.
             <motion.li
               key={link.id}
-              layout
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              transition={{ duration: 0.2, ease: EASE_OUT }}
+              layout="position"
+              {...swap}
+              transition={{ ...FADE, layout: SPRING }}
               className="quick-dial-row"
             >
-              {editingId === link.id ? (
-                <LinkForm
-                  initial={{ title: link.title, url: link.url }}
-                  submitLabel="Save"
-                  onSubmit={(draft) => handleUpdate(link.id, draft)}
-                  onCancel={() => onEditingChange(null)}
-                />
-              ) : (
-                <LinkRow
-                  link={link}
-                  first={index === 0}
-                  last={index === links.length - 1}
-                  onMove={(direction) =>
-                    save(moveLink(links, link.id, direction))
-                  }
-                  onEdit={() => onEditingChange(link.id)}
-                  onRemove={() => {
-                    if (editingId === link.id) onEditingChange(null);
-                    save(removeLink(links, link.id));
-                  }}
-                />
-              )}
+              <AnimatePresence initial={false} mode="popLayout">
+                <motion.div
+                  key={editingId === link.id ? "form" : "row"}
+                  className="quick-dial-swap"
+                  {...swap}
+                >
+                  {editingId === link.id ? (
+                    <LinkForm
+                      initial={{ title: link.title, url: link.url }}
+                      submitLabel="Save"
+                      onSubmit={(draft) => handleUpdate(link.id, draft)}
+                      onCancel={() => onEditingChange(null)}
+                    />
+                  ) : (
+                    <LinkRow
+                      link={link}
+                      first={index === 0}
+                      last={index === links.length - 1}
+                      onMove={(direction) =>
+                        save(moveLink(links, link.id, direction))
+                      }
+                      onEdit={() => onEditingChange(link.id)}
+                      onRemove={() => {
+                        if (editingId === link.id) onEditingChange(null);
+                        save(removeLink(links, link.id));
+                      }}
+                    />
+                  )}
+                </motion.div>
+              </AnimatePresence>
             </motion.li>
           ))}
         </AnimatePresence>

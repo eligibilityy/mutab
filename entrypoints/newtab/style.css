@@ -700,8 +700,19 @@ body {
   overflow: hidden;
 }
 
+/* Positioned so popLayout can pin outgoing content in place while it fades */
+.quick-dial-content,
+.quick-dial-row {
+  position: relative;
+}
+
 .quick-dial-content {
   padding: 0.375rem;
+}
+
+/* Swaps scale from the top edge, where the popover is anchored */
+.quick-dial-swap {
+  transform-origin: top center;
 }
 
 .quick-dial-links {
