@@ -5,6 +5,7 @@ import {
   getCurrentlyPlaying,
   getProfile,
   getRecentlyPlayed,
+  type NowPlaying,
 } from "@/lib/spotify/api";
 import {
   clearSpotifyState,
@@ -15,7 +16,16 @@ import {
 } from "@/lib/spotify/store";
 
 const POLL_MS = 5000;
+const PAUSE_TIMEOUT_MS = 10 * 60_000;
 const MAX_BACKOFF_MS = 60_000;
+
+function isLongPaused(nowPlaying: NowPlaying | null) {
+  return (
+    nowPlaying !== null &&
+    !nowPlaying.isPlaying &&
+    Date.now() - nowPlaying.changedAt > PAUSE_TIMEOUT_MS
+  );
+}
 
 export default defineBackground(() => {
   const watchers = new Set<Browser.runtime.Port>();
@@ -32,7 +42,8 @@ export default defineBackground(() => {
     }
 
     const previous = await nowPlayingItem.getValue();
-    const nowPlaying = await getCurrentlyPlaying();
+    const fetched = await getCurrentlyPlaying();
+    const nowPlaying = isLongPaused(fetched) ? null : fetched;
     await nowPlayingItem.setValue(nowPlaying);
 
     if (previous?.isPlaying && !nowPlaying?.isPlaying) recentStale = true;

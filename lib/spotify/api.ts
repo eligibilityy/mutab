@@ -17,6 +17,7 @@ export type NowPlaying = Track & {
   progressMs: number;
   durationMs: number;
   updatedAt: number;
+  changedAt: number;
 };
 
 export type Profile = {
@@ -43,6 +44,7 @@ type CurrentlyPlayingResponse = {
   is_playing: boolean;
   item: SpotifyTrack | null;
   progress_ms: number | null;
+  timestamp: number;
 };
 
 type RecentlyPlayedResponse = {
@@ -111,6 +113,7 @@ export async function getCurrentlyPlaying(): Promise<NowPlaying | null> {
     progressMs: data.progress_ms ?? 0,
     durationMs: data.item.duration_ms,
     updatedAt: Date.now(),
+    changedAt: data.timestamp,
   };
 }
 
