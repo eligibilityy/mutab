@@ -1,7 +1,12 @@
 import { useState, useEffect } from "react";
+import { useStorageValue } from "./useStorageValue";
+import { clockFormatItem, showDateItem } from "@/lib/settings";
 
 export function Clock({ compact }: { compact: boolean }) {
   const [time, setTime] = useState(() => new Date());
+
+  const format = useStorageValue(clockFormatItem);
+  const showDate = useStorageValue(showDateItem);
 
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout>;
@@ -20,7 +25,14 @@ export function Clock({ compact }: { compact: boolean }) {
     return () => clearTimeout(timeoutId);
   }, []);
 
-  const hours = String(time.getHours());
+  if (format === undefined) return null;
+
+  const twelveHour = format === "12h";
+  const hours = String(
+    twelveHour ? time.getHours() % 12 || 12 : time.getHours(),
+  );
+  // const period = time.getHours() < 12 ? "AM" : "PM";
+
   const minutes = String(time.getMinutes()).padStart(2, "0");
 
   const date = time.toLocaleDateString(undefined, {
@@ -33,11 +45,12 @@ export function Clock({ compact }: { compact: boolean }) {
     <div
       className={`flex items-center text-center ${compact ? "flex-col" : "flex-col-reverse"}`}
     >
-      <p className="date">{date}</p>
+      {showDate === true && <p className="date">{date}</p>}
       <h1 className={`clock ${compact ? "clock-compact" : ""}`}>
         {hours}
         <span className="colon">:</span>
         {minutes}
+        {/* {twelveHour && <span className="clock-period">{period}</span>} */}
       </h1>
     </div>
   );

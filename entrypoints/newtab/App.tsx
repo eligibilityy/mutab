@@ -8,11 +8,14 @@ import { SpotifyStatus } from "./SpotifyStatus";
 import { useNowPlaying } from "./useNowPlaying";
 import { useSpotifyWatcher } from "./useSpotifyWatcher";
 import { useStorageValue } from "./useStorageValue";
+import { animateBackgroundItem, showRecentItem } from "@/lib/settings";
 
 function App() {
   useSpotifyWatcher();
   const nowPlaying = useNowPlaying();
   const recent = useStorageValue(recentItem) ?? [];
+  const showRecent = useStorageValue(showRecentItem);
+  const animateBackground = useStorageValue(animateBackgroundItem);
 
   if (nowPlaying === undefined) return null;
 
@@ -24,7 +27,7 @@ function App() {
       <Background
         visible={hasTrack}
         coverUrl={nowPlaying?.coverUrl ?? null}
-        animate={playing}
+        animate={playing && animateBackground === true}
       />
       <main className={`layout ${hasTrack ? "is-playing" : "is-idle"}`}>
         <SpotifyStatus />
@@ -34,7 +37,7 @@ function App() {
           {nowPlaying && <NowPlayingCard track={nowPlaying} />}
         </div>
         <SearchBar />
-        {!hasTrack && <RecentlyPlayed tracks={recent} />}
+        {!hasTrack && showRecent === true && <RecentlyPlayed tracks={recent} />}
         <div className="spacer-outer" />
       </main>
     </>
