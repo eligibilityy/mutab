@@ -58,6 +58,9 @@ export function SearchBar() {
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
+      const target = event.target as HTMLElement;
+      if (target.closest('[role="dialog"]')) return;
+
       const typing = document.activeElement === inputRef.current;
       if (
         (event.ctrlKey && event.key === "k") ||
