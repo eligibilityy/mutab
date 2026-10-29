@@ -2,6 +2,7 @@ import { recentItem } from "@/lib/spotify/store";
 import { Background } from "./Background";
 import { Clock } from "./Clock";
 import { NowPlayingCard } from "./NowPlayingCard";
+import { QuickDial } from "./QuickDial";
 import { RecentlyPlayed } from "./RecentlyPlayed";
 import { SearchBar } from "./SearchBar";
 import { SpotifyStatus } from "./SpotifyStatus";
@@ -30,6 +31,7 @@ function App() {
         animate={playing && animateBackground === true}
       />
       <main className={`layout ${hasTrack ? "is-playing" : "is-idle"}`}>
+        <QuickDial />
         <SpotifyStatus />
         <div className="spacer-outer" />
         <Clock compact={hasTrack} />
