@@ -1,4 +1,5 @@
-import type { NowPlaying, Profile, Track } from "../music/types";
+import { spotifySearchUrl } from "@/lib/music/links";
+import type { NowPlaying, Profile, Track } from "@/lib/music/types";
 
 const API_KEY = import.meta.env.WXT_LASTFM_API_KEY;
 const API_URL = "https://ws.audioscrobbler.com/2.0/";
@@ -55,7 +56,7 @@ type RecentTracksResponse = {
 };
 
 type UserInfoResponse = {
-  user: { name: string; realname: string; image: LastfmImage[] };
+  user: { name: string; realname: string; url: string; image: LastfmImage[] };
 };
 
 function imageUrl(images: LastfmImage[], size: string) {
@@ -70,14 +71,16 @@ function trackList(data: RecentTracksResponse) {
 }
 
 function toTrack(item: LastfmTrack): Track {
+  const artist = item.artist["#text"];
   return {
     id: item.url,
     title: item.name,
-    artist: item.artist["#text"],
+    artist,
     album: item.album["#text"],
     coverUrl: imageUrl(item.image, "770x0"),
     thumbUrl: imageUrl(item.image, "174s"),
-    url: item.url,
+    url: spotifySearchUrl(artist, item.name),
+    via: { name: "Last.fm", url: item.url },
   };
 }
 
@@ -129,5 +132,6 @@ export async function getUserInfo(username: string): Promise<Profile> {
   return {
     name: user.realname.trim() || user.name,
     avatarUrl: imageUrl(user.image, "174s") ?? undefined,
+    url: user.url,
   };
 }

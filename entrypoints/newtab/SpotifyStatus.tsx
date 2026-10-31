@@ -3,7 +3,7 @@ import { login, logout } from "@/lib/spotify/auth";
 import { profileItem, signOutReasonItem } from "@/lib/music/store";
 import { useStorageValue } from "./useStorageValue";
 import { Menu } from "@base-ui/react/menu";
-import { Ellipsis, LogOut, Settings } from "lucide-react";
+import { Ellipsis, LogOut, Settings, UserRound } from "lucide-react";
 import { SettingsDialog } from "./SettingsDialog";
 import { signOut } from "@/lib/music/account";
 import { lastfmUserItem } from "@/lib/lastfm/source";
@@ -107,6 +107,13 @@ export function SpotifyStatus() {
                 </Menu.Item>
                 {profile && (
                   <>
+                    {/* Only Last.fm profiles carry a url for now */}
+                    {profile.url && (
+                      <Menu.LinkItem className="menu-item" href={profile.url}>
+                        <UserRound className="size-4" aria-hidden="true" />
+                        Last.fm profile
+                      </Menu.LinkItem>
+                    )}
                     <Menu.Separator className="menu-separator" />
                     <Menu.Item className="menu-item" onClick={signOut}>
                       <LogOut className="size-4" aria-hidden="true" />

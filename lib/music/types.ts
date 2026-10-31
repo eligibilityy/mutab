@@ -6,6 +6,7 @@ export type Track = {
   coverUrl: string | null;
   thumbUrl: string | null;
   url: string;
+  via?: { name: string; url: string };
 };
 
 export type Timing = {
@@ -23,4 +24,5 @@ export type NowPlaying = Track & {
 export type Profile = {
   name: string;
   avatarUrl?: string;
+  url?: string;
 };
