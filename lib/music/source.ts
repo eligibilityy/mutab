@@ -1,6 +1,7 @@
 import type { NowPlaying, Profile, Track } from "./types";
 
 export interface MusicSource {
+  name: string;
   pollMs: number;
   isConnected(): Promise<boolean>;
   getNowPlaying(): Promise<NowPlaying | null>;

@@ -1,5 +1,5 @@
 import type { Browser } from "wxt/browser";
-import { authItem, logout } from "@/lib/spotify/auth";
+import { authItem } from "@/lib/spotify/auth";
 import { AccessRevokedError, SpotifyError } from "@/lib/spotify/errors";
 import {
   clearMusicState,
@@ -10,6 +10,10 @@ import {
 } from "@/lib/music/store";
 import type { NowPlaying } from "@/lib/music/types";
 import { spotifySource } from "@/lib/spotify/source";
+import type { MusicSource } from "@/lib/music/source";
+import { activeSource, signOut } from "@/lib/music/account";
+import { LastfmError } from "@/lib/lastfm/api";
+import { lastfmUserItem } from "@/lib/lastfm/source";
 
 const PAUSE_TIMEOUT_MS = 10 * 60_000;
 const MAX_BACKOFF_MS = 60_000;
@@ -23,7 +27,7 @@ function isLongPaused(nowPlaying: NowPlaying | null) {
 }
 
 export default defineBackground(() => {
-  const source = spotifySource;
+  let source: MusicSource = spotifySource;
   const watchers = new Set<Browser.runtime.Port>();
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
   let busy = false;
@@ -74,6 +78,7 @@ export default defineBackground(() => {
 
     busy = true;
     clearTimeout(timeoutId);
+    source = await activeSource();
     let delay = source.pollMs;
 
     try {
@@ -81,13 +86,18 @@ export default defineBackground(() => {
       failures = 0;
     } catch (error) {
       if (error instanceof AccessRevokedError) {
-        await logout();
+        await signOut();
         await signOutReasonItem.setValue(error.message);
+      } else if (error instanceof LastfmError && error.code === 6) {
+        await signOut();
+        await signOutReasonItem.setValue(
+          "That Last.fm user no longer exists. Please connect again.",
+        );
       } else {
         delay = backoffDelay(error);
         blockedUntil = Date.now() + delay;
         console.warn(
-          `Spotify sync failed, retrying in ${delay / 1000}s:`,
+          `${source.name} sync failed, retrying in ${delay / 1000}s:`,
           error,
         );
       }
@@ -98,14 +108,17 @@ export default defineBackground(() => {
     schedule(delay);
   }
 
+  function onSourceChange() {
+    recentStale = true;
+    failures = 0;
+    blockedUntil = 0;
+    poll();
+  }
+
   authItem.watch((auth, previous) => {
-    if (auth && !previous) {
-      recentStale = true;
-      poll();
-    } else if (!auth) {
-      clearMusicState();
-    }
+    if (Boolean(auth) !== Boolean(previous)) onSourceChange();
   });
+  lastfmUserItem.watch(onSourceChange);
 
   browser.runtime.onConnect.addListener((port) => {
     if (port.name !== "spotify-watch") return;
