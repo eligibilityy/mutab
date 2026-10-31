@@ -78,6 +78,31 @@ body {
   transition: opacity 0.4s ease;
 }
 
+/* Takes over the column layout now that the card is a div holding two links */
+.now-playing-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%;
+}
+
+.via-link {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  transition: color 150ms var(--ease-out);
+}
+
+.via-link:focus-visible {
+  color: white;
+}
+
+@media (hover: hover) {
+  .via-link:hover {
+    color: white;
+  }
+}
+
 .now-playing.is-paused {
   opacity: 0.55;
 }
@@ -448,8 +473,18 @@ body {
   margin-top: 2rem;
 }
 
-.recent-heading {
+.recent-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   margin-bottom: 0.75rem;
+}
+
+.recent-header .via-link {
+  margin-top: 0;
+}
+
+.recent-heading {
   font-size: 0.8125rem;
   color: var(--text-muted);
 }

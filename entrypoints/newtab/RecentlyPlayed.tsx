@@ -1,11 +1,24 @@
 import type { CSSProperties } from "react";
+import { profileItem } from "@/lib/music/store";
 import type { Track } from "@/lib/music/types";
+import { useStorageValue } from "./useStorageValue";
 
 export function RecentlyPlayed({ tracks }: { tracks: Track[] }) {
+  const profile = useStorageValue(profileItem);
+
   if (tracks.length === 0) return null;
+  const via = tracks[0]?.via;
+
   return (
     <section className="recent" aria-label="Recently played">
-      <h2 className="recent-heading">Recently played</h2>
+      <div className="recent-header">
+        <h2 className="recent-heading">Recently played</h2>
+        {via && profile?.url && (
+          <a href={profile.url} className="via-link">
+            via {via.name}
+          </a>
+        )}
+      </div>
       <ul className="recent-list">
         {tracks.map((track, index) => (
           <li key={track.id}>
