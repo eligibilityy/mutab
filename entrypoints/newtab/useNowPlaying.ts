@@ -1,5 +1,5 @@
-import type { NowPlaying } from "@/lib/spotify/api";
-import { nowPlayingItem } from "@/lib/spotify/store";
+import type { NowPlaying } from "@/lib/music/types";
+import { nowPlayingItem } from "@/lib/music/store";
 
 const STABLE_MS = 5 * 60_000;
 

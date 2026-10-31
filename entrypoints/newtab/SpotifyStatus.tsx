@@ -1,6 +1,6 @@
 import { getProfile } from "@/lib/spotify/api";
 import { login, logout } from "@/lib/spotify/auth";
-import { profileItem, signOutReasonItem } from "@/lib/spotify/store";
+import { profileItem, signOutReasonItem } from "@/lib/music/store";
 import { useStorageValue } from "./useStorageValue";
 import { Menu } from "@base-ui/react/menu";
 import { Ellipsis, LoaderCircle, LogOut, Settings } from "lucide-react";

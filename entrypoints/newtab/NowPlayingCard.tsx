@@ -1,4 +1,4 @@
-import type { NowPlaying } from "@/lib/spotify/api";
+import type { NowPlaying } from "@/lib/music/types";
 import { useProgress } from "./useProgress";
 
 function formatTime(ms: number) {

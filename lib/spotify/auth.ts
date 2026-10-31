@@ -1,5 +1,5 @@
 import { AccessRevokedError, SpotifyError } from "./errors";
-import { clearSpotifyState } from "./store";
+import { clearMusicState } from "../music/store";
 
 const CLIENT_ID = import.meta.env.WXT_SPOTIFY_CLIENT_ID;
 const SCOPES = [
@@ -140,5 +140,5 @@ export async function getAccessToken() {
 
 export async function logout() {
   await authItem.removeValue();
-  await clearSpotifyState();
+  await clearMusicState();
 }

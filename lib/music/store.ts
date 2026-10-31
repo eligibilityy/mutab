@@ -1,4 +1,4 @@
-import type { NowPlaying, Profile, Track } from "./api";
+import type { NowPlaying, Profile, Track } from "./types";
 
 export const profileItem = storage.defineItem<Profile>("local:spotifyProfile");
 export const signOutReasonItem = storage.defineItem<string>(
@@ -11,7 +11,7 @@ export const recentItem = storage.defineItem<Track[]>("local:recentlyPlayed", {
   fallback: [],
 });
 
-export async function clearSpotifyState() {
+export async function clearMusicState() {
   await Promise.all([
     profileItem.removeValue(),
     nowPlayingItem.removeValue(),

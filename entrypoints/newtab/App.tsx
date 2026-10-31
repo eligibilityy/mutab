@@ -1,4 +1,4 @@
-import { recentItem } from "@/lib/spotify/store";
+import { recentItem } from "@/lib/music/store";
 import { Background } from "./Background";
 import { Clock } from "./Clock";
 import { NowPlayingCard } from "./NowPlayingCard";
