@@ -1,4 +1,4 @@
-import type { NowPlaying } from "@/lib/spotify/api";
+import type { NowPlaying } from "@/lib/music/types";
 
 const TICK_MS = 1000;
 

@@ -2,20 +2,15 @@ import type { Browser } from "wxt/browser";
 import { authItem, logout } from "@/lib/spotify/auth";
 import { AccessRevokedError, SpotifyError } from "@/lib/spotify/errors";
 import {
-  getCurrentlyPlaying,
-  getProfile,
-  getRecentlyPlayed,
-  type NowPlaying,
-} from "@/lib/spotify/api";
-import {
-  clearSpotifyState,
+  clearMusicState,
   nowPlayingItem,
   profileItem,
   recentItem,
   signOutReasonItem,
-} from "@/lib/spotify/store";
+} from "@/lib/music/store";
+import type { NowPlaying } from "@/lib/music/types";
+import { spotifySource } from "@/lib/spotify/source";
 
-const POLL_MS = 5000;
 const PAUSE_TIMEOUT_MS = 10 * 60_000;
 const MAX_BACKOFF_MS = 60_000;
 
@@ -28,6 +23,7 @@ function isLongPaused(nowPlaying: NowPlaying | null) {
 }
 
 export default defineBackground(() => {
+  const source = spotifySource;
   const watchers = new Set<Browser.runtime.Port>();
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
   let busy = false;
@@ -36,24 +32,24 @@ export default defineBackground(() => {
   let blockedUntil = 0;
 
   async function sync() {
-    if (!(await authItem.getValue())) {
-      await clearSpotifyState();
+    if (!(await source.isConnected())) {
+      await clearMusicState();
       return;
     }
 
     const previous = await nowPlayingItem.getValue();
-    const fetched = await getCurrentlyPlaying();
+    const fetched = await source.getNowPlaying();
     const nowPlaying = isLongPaused(fetched) ? null : fetched;
     await nowPlayingItem.setValue(nowPlaying);
 
     if (previous?.isPlaying && !nowPlaying?.isPlaying) recentStale = true;
     if (recentStale && !nowPlaying?.isPlaying) {
-      await recentItem.setValue(await getRecentlyPlayed());
+      await recentItem.setValue(await source.getRecent());
       recentStale = false;
     }
 
     if (!(await profileItem.getValue())) {
-      await profileItem.setValue(await getProfile());
+      await profileItem.setValue(await source.getProfile());
     }
   }
 
@@ -67,7 +63,7 @@ export default defineBackground(() => {
       return error.retryAfterMs;
     }
     failures += 1;
-    return Math.min(POLL_MS * 2 ** failures, MAX_BACKOFF_MS);
+    return Math.min(source.pollMs * 2 ** failures, MAX_BACKOFF_MS);
   }
 
   async function poll() {
@@ -78,7 +74,7 @@ export default defineBackground(() => {
 
     busy = true;
     clearTimeout(timeoutId);
-    let delay = POLL_MS;
+    let delay = source.pollMs;
 
     try {
       await sync();
@@ -107,7 +103,7 @@ export default defineBackground(() => {
       recentStale = true;
       poll();
     } else if (!auth) {
-      clearSpotifyState();
+      clearMusicState();
     }
   });
 
