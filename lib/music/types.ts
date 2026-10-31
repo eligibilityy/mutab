@@ -6,13 +6,16 @@ export type Track = {
   coverUrl: string | null;
   thumbUrl: string | null;
   url: string;
-  uri: string;
+};
+
+export type Timing = {
+  progressMs: number;
+  durationMs: number;
 };
 
 export type NowPlaying = Track & {
   isPlaying: boolean;
-  progressMs: number;
-  durationMs: number;
+  timing: Timing | null;
   updatedAt: number;
   changedAt: number;
 };

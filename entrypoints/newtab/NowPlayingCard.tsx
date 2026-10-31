@@ -1,4 +1,4 @@
-import type { NowPlaying } from "@/lib/music/types";
+import type { NowPlaying, Timing } from "@/lib/music/types";
 import { useProgress } from "./useProgress";
 
 function formatTime(ms: number) {
@@ -8,10 +8,37 @@ function formatTime(ms: number) {
   return `${minutes}:${seconds}`;
 }
 
-export function NowPlayingCard({ track }: { track: NowPlaying }) {
-  const progressMs = useProgress(track);
-  const fraction = track.durationMs > 0 ? progressMs / track.durationMs : 0;
+// Its own component so useProgress only runs when there is timing to show:
+// hooks can't be called conditionally, but components can be rendered conditionally.
+function ProgressBar({ track, timing }: { track: NowPlaying; timing: Timing }) {
+  const progressMs = useProgress(track, timing);
+  const fraction = timing.durationMs > 0 ? progressMs / timing.durationMs : 0;
 
+  return (
+    <>
+      <div
+        className="progress"
+        role="progressbar"
+        aria-label="Track progress"
+        aria-valuemin={0}
+        aria-valuemax={timing.durationMs}
+        aria-valuenow={progressMs}
+        aria-valuetext={`${formatTime(progressMs)} of ${formatTime(timing.durationMs)}`}
+      >
+        <div
+          className="progress-fill"
+          style={{ transform: `scaleX(${fraction})` }}
+        />
+      </div>
+      <div className="progress-times">
+        <span>{formatTime(progressMs)}</span>
+        <span>{formatTime(timing.durationMs)}</span>
+      </div>
+    </>
+  );
+}
+
+export function NowPlayingCard({ track }: { track: NowPlaying }) {
   return (
     <a
       href={track.url}
@@ -26,25 +53,9 @@ export function NowPlayingCard({ track }: { track: NowPlaying }) {
       )}
       <div className="track-title">{track.title}</div>
       <div className="track-artist">{track.artist}</div>
-      <div
-        key={track.id}
-        className="progress"
-        role="progressbar"
-        aria-label="Track progress"
-        aria-valuemin={0}
-        aria-valuemax={track.durationMs}
-        aria-valuenow={progressMs}
-        aria-valuetext={`${formatTime(progressMs)} of ${formatTime(track.durationMs)}`}
-      >
-        <div
-          className="progress-fill"
-          style={{ transform: `scaleX(${fraction})` }}
-        />
-      </div>
-      <div className="progress-times">
-        <span>{formatTime(progressMs)}</span>
-        <span>{formatTime(track.durationMs)}</span>
-      </div>
+      {track.timing && (
+        <ProgressBar key={track.id} track={track} timing={track.timing} />
+      )}
     </a>
   );
 }

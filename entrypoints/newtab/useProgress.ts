@@ -1,8 +1,8 @@
-import type { NowPlaying } from "@/lib/music/types";
+import type { NowPlaying, Timing } from "@/lib/music/types";
 
 const TICK_MS = 1000;
 
-export function useProgress(track: NowPlaying) {
+export function useProgress(track: NowPlaying, timing: Timing) {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -11,8 +11,8 @@ export function useProgress(track: NowPlaying) {
     return () => clearInterval(intervalId);
   }, [track.isPlaying]);
 
-  if (!track.isPlaying) return track.progressMs;
+  if (!track.isPlaying) return timing.progressMs;
 
   const elapsed = Math.max(0, now - track.updatedAt);
-  return Math.min(track.durationMs, track.progressMs + elapsed);
+  return Math.min(timing.durationMs, timing.progressMs + elapsed);
 }
