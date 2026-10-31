@@ -335,9 +335,10 @@ body {
   height: 2.25rem;
   padding: 0 1rem;
   border-radius: 9999px;
-  background: #1ed760;
+  background: white;
   color: black;
   font-weight: 600;
+  cursor: pointer;
   transition:
     transform 150ms var(--ease-out),
     opacity 150ms var(--ease-out);
@@ -420,6 +421,12 @@ body {
   height: 1px;
   margin: 0.375rem 0.25rem;
   background: var(--border);
+}
+
+.menu-label {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
 .status-error {
@@ -677,8 +684,8 @@ body {
 }
 
 /* Opens instantly (it's used many times a day), only the exit animates */
-.quick-dial-popup {
-  width: min(20rem, calc(100vw - 2rem));
+.quick-dial-popup,
+.connect-popup {
   border: 1px solid var(--border);
   border-radius: 1.25rem;
   corner-shape: squircle;
@@ -690,29 +697,67 @@ body {
     scale 150ms var(--ease-out);
 }
 
-.quick-dial-popup[data-ending-style] {
+.quick-dial-popup[data-ending-style],
+.connect-popup[data-ending-style] {
   opacity: 0;
   scale: 0.97;
 }
 
-/* Motion animates this wrapper's height to match .quick-dial-content */
-.quick-dial-body {
+.quick-dial-popup {
+  width: min(20rem, calc(100vw - 2rem));
+}
+
+.connect-popup {
+  width: 15rem;
+}
+
+/* AnimatedHeight (motion.tsx) animates this wrapper to its content's height */
+.animated-height {
   overflow: hidden;
 }
 
 /* Positioned so popLayout can pin outgoing content in place while it fades */
-.quick-dial-content,
+.popup-content,
 .quick-dial-row {
   position: relative;
 }
 
-.quick-dial-content {
+.popup-content {
   padding: 0.375rem;
 }
 
-/* Swaps scale from the top edge, where the popover is anchored */
-.quick-dial-swap {
+/* Swaps scale from the top edge, where popovers are anchored */
+.swap {
   transform-origin: top center;
+}
+
+.service-dot {
+  flex-shrink: 0;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+}
+
+.service-dot-spotify {
+  background: #1ed760;
+}
+
+.service-dot-lastfm {
+  background: #d51007;
+}
+
+.connect-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.25rem;
+}
+
+.connect-form-header {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 600;
 }
 
 .quick-dial-links {
@@ -915,7 +960,8 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .quick-dial-popup {
+  .quick-dial-popup,
+  .connect-popup {
     transition-property: opacity;
   }
 

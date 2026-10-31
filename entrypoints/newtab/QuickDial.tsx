@@ -1,10 +1,5 @@
 import { Popover } from "@base-ui/react/popover";
-import {
-  AnimatePresence,
-  MotionConfig,
-  motion,
-  useReducedMotion,
-} from "motion/react";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import {
   ArrowDown,
   ArrowUp,
@@ -27,32 +22,10 @@ import {
   type QuickLink,
 } from "@/lib/quickLinks";
 import { faviconUrl } from "./bangs";
-import { useMeasuredHeight } from "./useMeasure";
+import { AnimatedHeight, FADE, SPRING, useSwapAnimation } from "./motion";
 import { useStorageValue } from "./useStorageValue";
 
-// Same curve as --ease-out in style.css, so CSS and Motion feel alike
-const EASE_OUT = [0.23, 1, 0.32, 1] as const;
-// Springs keep their velocity when interrupted, so switching modes mid-resize
-// carries on smoothly instead of restarting. No bounce: fluid, not wobbly.
-const SPRING = { type: "spring", bounce: 0, duration: 0.4 } as const;
-const FADE = { duration: 0.2, ease: EASE_OUT } as const;
 const EMPTY_DRAFT: LinkDraft = { title: "", url: "" };
-
-// Content swaps blur out while the container resizes, then the new content
-// blurs in, so the two never visibly overlap as hard edges.
-function useSwapAnimation() {
-  const reduceMotion = useReducedMotion();
-  const hidden = reduceMotion
-    ? { opacity: 0 }
-    : { opacity: 0, scale: 0.97, filter: "blur(4px)" };
-
-  return {
-    initial: hidden,
-    animate: { opacity: 1, scale: 1, filter: "blur(0px)" },
-    exit: hidden,
-    transition: FADE,
-  };
-}
 
 type Mode = "view" | "edit";
 
@@ -138,36 +111,27 @@ function QuickDialPanel({
   onModeChange,
   onEditingChange,
 }: PanelProps) {
-  const [contentRef, height] = useMeasuredHeight<HTMLDivElement>();
-  const reduceMotion = useReducedMotion();
   const swap = useSwapAnimation();
 
   return (
-    <motion.div
-      className="quick-dial-body"
-      initial={false}
-      animate={{ height: height > 0 ? height : "auto" }}
-      transition={reduceMotion ? { duration: 0 } : SPRING}
-    >
-      <div ref={contentRef} className="quick-dial-content">
-        {/* popLayout takes the outgoing mode out of the flow, so the measured
-            height is already the new mode's while the old one fades away */}
-        <AnimatePresence initial={false} mode="popLayout">
-          <motion.div key={mode} className="quick-dial-swap" {...swap}>
-            {mode === "view" ? (
-              <ViewMode links={links} onEdit={() => onModeChange("edit")} />
-            ) : (
-              <EditMode
-                links={links}
-                editingId={editingId}
-                onEditingChange={onEditingChange}
-                onDone={() => onModeChange("view")}
-              />
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </div>
-    </motion.div>
+    <AnimatedHeight className="popup-content">
+      {/* popLayout takes the outgoing mode out of the flow, so the measured
+          height is already the new mode's while the old one fades away */}
+      <AnimatePresence initial={false} mode="popLayout">
+        <motion.div key={mode} className="swap" {...swap}>
+          {mode === "view" ? (
+            <ViewMode links={links} onEdit={() => onModeChange("edit")} />
+          ) : (
+            <EditMode
+              links={links}
+              editingId={editingId}
+              onEditingChange={onEditingChange}
+              onDone={() => onModeChange("view")}
+            />
+          )}
+        </motion.div>
+      </AnimatePresence>
+    </AnimatedHeight>
   );
 }
 
@@ -272,7 +236,7 @@ function EditMode({
               <AnimatePresence initial={false} mode="popLayout">
                 <motion.div
                   key={editingId === link.id ? "form" : "row"}
-                  className="quick-dial-swap"
+                  className="swap"
                   {...swap}
                 >
                   {editingId === link.id ? (
