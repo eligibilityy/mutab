@@ -38,7 +38,6 @@ function toTrack(item: SpotifyTrack): Track {
     coverUrl: images[0]?.url ?? null,
     thumbUrl: images[1]?.url ?? images[0]?.url ?? null,
     url: item.external_urls.spotify,
-    uri: item.uri,
   };
 }
 
@@ -87,8 +86,10 @@ export async function getCurrentlyPlaying(): Promise<NowPlaying | null> {
   return {
     ...toTrack(data.item),
     isPlaying: data.is_playing,
-    progressMs: data.progress_ms ?? 0,
-    durationMs: data.item.duration_ms,
+    timing: {
+      progressMs: data.progress_ms ?? 0,
+      durationMs: data.item.duration_ms,
+    },
     updatedAt: Date.now(),
     changedAt: data.timestamp,
   };
